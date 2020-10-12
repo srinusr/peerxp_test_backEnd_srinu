@@ -1,31 +1,26 @@
-<?php
-require 'connection.php';
-
 $postdata = file_get_contents("php://input");
 
-if(isset($postdata) && !empty($postdata))
+if($_FILES['file'])
 {
+    $file_name = $_FILES["file"]['name'];
+    $request = curl_init('https://desk.zoho.in/api/v1/uploads');
 
-$ch = curl_init();
+// send a file
+curl_setopt($request, CURLOPT_POST, true);
+// $csv_file = new CURLFile($file_name,'image/*');
+$attributes = array('name' => $file_name, 'parent' => array('id' => '0'));
+curl_setopt(
+    $request, 
+    CURLOPT_POSTFIELDS,$_FILES["file"]);
 
-curl_setopt($ch, CURLOPT_URL,"https://desk.zoho.in/api/v1/uploads");
-curl_setopt($ch, CURLOPT_POST, 1);
-curl_setopt($ch, CURLOPT_POSTFIELDS,$postdata);
-curl_setopt($ch, CURLOPT_HTTPHEADER, array(
-    'Authorization: ca2e56a68d01e393c0e4c5aa5638729c',
-    'orgId: 60001280952',
-    'Content-type: multipart/form-data'
-  ));
-curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+// output the response
+curl_setopt($request, CURLOPT_RETURNTRANSFER, true);
+curl_setopt($request, CURLOPT_HTTPHEADER, array(
+'Authorization: ca2e56a68d01e393c0e4c5aa5638729c',
+'orgId: 60001280952',
+'Content-Type: multipart/form-data'));
+echo curl_exec($request);
 
-$server_output = curl_exec($ch);
-curl_close ($ch);
-if($server_output){
-  echo json_encode($server_output);
-}
-else{
-  http_response_code(505);
-}
-
-}
-?>
+// close the session
+curl_close($request);
+http_response_code(505);
